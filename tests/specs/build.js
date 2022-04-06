@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const glob = require('globby');
 const AdmZip = require('adm-zip');
-const { globPath } = require('../../lib/common');
+const { winPath } = require('../../lib/common');
 const { compilePosts } = require('../../lib/source');
 const h = require('../helper');
 
@@ -73,6 +73,17 @@ test('Run build - check for a post', async t => {
     t.deepEqual(await h.exists(path.join(process.config.buildDir, postMeta.permalink, 'index.html')), true);
 });
 
+test('Run build - check for a post from a subsolder', async t => {
+    // Run build and clean
+    try{
+        await h.exec(`node ${h.rootPath}/cli.js build -c`);
+    }catch(ex){
+        console.log('Ex', ex);
+    }
+
+    t.deepEqual(await h.exists(path.join(process.config.buildDir, 'subfolder-post', 'index.html')), true);
+});
+
 test('Run build - check for content', async t => {
     // Run build and clean
     try{
@@ -83,7 +94,7 @@ test('Run build - check for content', async t => {
 
     // Get content files
     const contentSourceFiles = await glob([
-        `${globPath(process.config.sourceDir)}/content/**/*`
+        `${winPath(process.config.sourceDir)}/${process.config.contentDir}/**`
     ]);
 
     // Fix paths and check build file exists
@@ -233,8 +244,8 @@ test('Run build - postBuild zip', async t => {
 
     // Get all files in the build dir
     const buildFiles = await glob([
-        `${globPath(process.config.buildDir)}/**/*`,
-        `!${globPath(process.config.buildDir)}/build.zip`
+        `${winPath(process.config.buildDir)}/**`,
+        `!${winPath(process.config.buildDir)}/build.zip`
     ]);
 
     // Read our zip to get files
